@@ -4,25 +4,14 @@ import retrofit2.http.Body
 import retrofit2.http.GET
 import retrofit2.http.POST
 
-data class RewriteRequest(
-    val text: String,
-    val tone: String
-)
+data class RewriteAllRequest(val text: String)
 
-data class RewriteResponse(
-    val variations: List<String>
-)
-
-data class HealthResponse(
-    val status: String,
-    val model: String
-)
+data class RewriteAllResponse(val rewrites: Map<String, List<String>>)
 
 interface ApiService {
-
-    @POST("rewrite")
-    suspend fun rewrite(@Body request: RewriteRequest): RewriteResponse
+    @POST("rewrite-all")
+    suspend fun rewriteAll(@Body request: RewriteAllRequest): RewriteAllResponse
 
     @GET("health")
-    suspend fun health(): HealthResponse
+    suspend fun health(): Map<String, String>
 }
