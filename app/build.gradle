@@ -20,9 +20,7 @@ android {
             debuggable true
         }
         release {
-            minifyEnabled true
-            proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
-            signingConfig signingConfigs.getByName("debug")
+            minifyEnabled false
         }
     }
 
@@ -33,10 +31,6 @@ android {
 
     kotlinOptions {
         jvmTarget = '17'
-    }
-
-    buildFeatures {
-        viewBinding true
     }
 }
 
