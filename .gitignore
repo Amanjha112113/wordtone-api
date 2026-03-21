@@ -21,3 +21,14 @@ venv/
 *.jks
 *.keystore
 backend/.env
+
+# Core Logic & Configs (Privacy)
+app/src/main/java/com/yourname/wordtone/WordToneIME.kt
+app/src/main/java/com/yourname/wordtone/RetrofitClient.kt
+app/src/main/java/com/yourname/wordtone/Constants.kt
+app/src/main/res/xml/qwerty.xml
+app/src/main/res/xml/symbols.xml
+backend/main.py
+
+
+
