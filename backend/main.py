@@ -89,3 +89,13 @@ async def remaining_calls(ip: str):
     one_day_ago = now - 86400
     used = len([t for t in user_call_count.get(ip, []) if t > one_day_ago])
     return {"used": used, "remaining": MAX_CALLS_PER_DAY - used, "limit": MAX_CALLS_PER_DAY}
+
+
+
+
+'''
+to update the api key :
+railway service
+railway variables set GEMINI_API_KEY=hgfkgfk
+railway up        
+'''
