@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">Word Tone Keyboard</string>
+    <string name="keyboard_name">Word Tone</string>
+    <string name="subtype_label">English (Word Tone)</string>
+    <string name="rewrite">ReWrite</string>
+    <string name="rewriting">Rewriting with AI…</string>
+</resources>

@@ -1,0 +1,23 @@
+# Android
+*.iml
+.gradle/
+/local.properties
+/.idea/
+.DS_Store
+/build
+/captures
+app/release/
+*.jks
+*.keystore
+
+# Backend
+__pycache__/
+*.pyc
+.env
+venv/
+.venv/
+
+# Keys — NEVER commit these
+*.jks
+*.keystore
+backend/.env

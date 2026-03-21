@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <color name="keyboard_bg">#1C1C1E</color>
+    <color name="surface">#2C2C2E</color>
+    <color name="surface_hover">#3A3A3C</color>
+    <color name="accent_purple">#6C5CE7</color>
+    <color name="accent_purple_light">#A29BFE</color>
+    <color name="text_primary">#FFFFFF</color>
+    <color name="text_secondary">#AEAEB2</color>
+    <color name="chip_selected_bg">#6C5CE7</color>
+    <color name="chip_unselected_bg">#3A3A3C</color>
+    <color name="white">#FFFFFF</color>
+    <color name="divider">#3A3A3C</color>
+</resources>
