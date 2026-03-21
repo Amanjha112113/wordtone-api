@@ -16,7 +16,7 @@ class WordToneIME : InputMethodService(), KeyboardView.OnKeyboardActionListener 
 
     private val scope = CoroutineScope(Dispatchers.Main + SupervisorJob())
 
-    // Cache — fetched once, reused for all tone switches
+    // Cache — one API call stores ALL 8 tones × 3 suggestions
     private var cachedRewrites: Map<String, List<String>> = emptyMap()
     private var lastFetchedText: String = ""
 
@@ -72,22 +72,23 @@ class WordToneIME : InputMethodService(), KeyboardView.OnKeyboardActionListener 
             textSize = 14f
             setTextColor(0xFFFFFFFF.toInt())
             setTypeface(null, Typeface.BOLD)
-            layoutParams = LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.WRAP_CONTENT, 1f)
+            layoutParams = LinearLayout.LayoutParams(
+                0, LinearLayout.LayoutParams.WRAP_CONTENT, 1f)
         }
         val rewriteBtn = Button(this).apply {
             text = "ReWrite"
             textSize = 11f
             setTextColor(0xFFFFFFFF.toInt())
             setBackgroundColor(0xFF6C5CE7.toInt())
-            layoutParams = LinearLayout.LayoutParams(LinearLayout.LayoutParams.WRAP_CONTENT, 72)
-            // ONE API call — fetches all tones at once
+            layoutParams = LinearLayout.LayoutParams(
+                LinearLayout.LayoutParams.WRAP_CONTENT, 72)
             setOnClickListener { fetchAllTones() }
         }
         header.addView(title)
         header.addView(rewriteBtn)
         panel.addView(header)
 
-        // Tone chips — switching is LOCAL, no API call
+        // Tone chips
         val scroll = HorizontalScrollView(this).apply {
             isHorizontalScrollBarEnabled = false
             layoutParams = LinearLayout.LayoutParams(
@@ -115,7 +116,7 @@ class WordToneIME : InputMethodService(), KeyboardView.OnKeyboardActionListener 
                 setOnClickListener {
                     selectedTone = tone
                     updateChipColors()
-                    // Show cached result instantly — NO API call
+                    // ZERO API calls — just show cache
                     showCachedTone(tone.value)
                 }
             }
@@ -124,9 +125,9 @@ class WordToneIME : InputMethodService(), KeyboardView.OnKeyboardActionListener 
         scroll.addView(chips)
         panel.addView(scroll)
 
-        // Loading
+        // Loading text
         val loading = TextView(this).apply {
-            text = "Rewriting all tones..."
+            text = "Generating all tones..."
             textSize = 11f
             setTextColor(0xFFAEAEB2.toInt())
             visibility = View.GONE
@@ -138,7 +139,7 @@ class WordToneIME : InputMethodService(), KeyboardView.OnKeyboardActionListener 
         loadingText = loading
         panel.addView(loading)
 
-        // Error
+        // Error text
         val empty = TextView(this).apply {
             textSize = 11f
             setTextColor(0xFFFF6B6B.toInt())
@@ -151,7 +152,7 @@ class WordToneIME : InputMethodService(), KeyboardView.OnKeyboardActionListener 
         emptyText = empty
         panel.addView(empty)
 
-        // Suggestions
+        // Suggestions container
         val sugg = LinearLayout(this).apply {
             orientation = LinearLayout.VERTICAL
             setPadding(12, 6, 12, 0)
@@ -172,7 +173,7 @@ class WordToneIME : InputMethodService(), KeyboardView.OnKeyboardActionListener 
         }
     }
 
-    // Called when user taps ReWrite — ONE API call for ALL tones
+    // ONE API call — fetches all 8 tones × 3 suggestions
     private fun fetchAllTones() {
         val text = getCurrentInputText()
         if (text.isBlank()) {
@@ -180,7 +181,7 @@ class WordToneIME : InputMethodService(), KeyboardView.OnKeyboardActionListener 
             return
         }
 
-        // If same text → show cached instantly, no API call
+        // Same text → use cache, zero API calls
         if (text == lastFetchedText && cachedRewrites.isNotEmpty()) {
             showCachedTone(selectedTone.value)
             return
@@ -202,46 +203,57 @@ class WordToneIME : InputMethodService(), KeyboardView.OnKeyboardActionListener 
 
             } catch (e: HttpException) {
                 loadingText?.visibility = View.GONE
-                emptyText?.text = if (e.code() == 429) "Daily quota exhausted." else "Server error."
+                emptyText?.text = when (e.code()) {
+                    429 -> "Quota exhausted. Try tomorrow."
+                    404 -> "Server endpoint not found."
+                    else -> "Server error (${e.code()})."
+                }
                 emptyText?.visibility = View.VISIBLE
             } catch (e: IOException) {
                 loadingText?.visibility = View.GONE
-                emptyText?.text = "No internet."
+                emptyText?.text = "No internet connection."
                 emptyText?.visibility = View.VISIBLE
             } catch (e: Exception) {
                 loadingText?.visibility = View.GONE
-                emptyText?.text = "Error. Try again."
+                emptyText?.text = "Error: ${e.message?.take(80)}"
                 emptyText?.visibility = View.VISIBLE
             }
         }
     }
 
-    // Show cached result for selected tone — instant, no API call
+    // Show 3 suggestions for selected tone — instant, no network
     private fun showCachedTone(tone: String) {
         val container = suggestionsContainer ?: return
         container.removeAllViews()
 
         if (cachedRewrites.isEmpty()) {
-            emptyText?.text = "Tap ReWrite first."
+            emptyText?.text = "Tap ReWrite to generate suggestions."
             emptyText?.visibility = View.VISIBLE
             return
         }
 
         emptyText?.visibility = View.GONE
-        val variations = cachedRewrites[tone] ?: return
+        val variations = cachedRewrites[tone]
+
+        if (variations.isNullOrEmpty()) {
+            emptyText?.text = "No suggestions for this tone."
+            emptyText?.visibility = View.VISIBLE
+            return
+        }
 
         variations.forEach { rewrite ->
             val item = TextView(this).apply {
                 text = rewrite
                 textSize = 13f
                 setTextColor(0xFFFFFFFF.toInt())
-                setBackgroundColor(0xFF3A3A3C.toInt())
+                setBackgroundColor(0xFF2C2C2E.toInt())
                 setPadding(20, 16, 20, 16)
                 layoutParams = LinearLayout.LayoutParams(
                     LinearLayout.LayoutParams.MATCH_PARENT,
                     LinearLayout.LayoutParams.WRAP_CONTENT).also {
                     it.bottomMargin = 6
                 }
+                // Tap to inject into WhatsApp
                 setOnClickListener { injectText(rewrite) }
             }
             container.addView(item)
@@ -269,7 +281,6 @@ class WordToneIME : InputMethodService(), KeyboardView.OnKeyboardActionListener 
     }
 
     // ── KeyboardView listener ──
-
     override fun onKey(primaryCode: Int, keyCodes: IntArray?) {
         val ic = currentInputConnection ?: return
         when (primaryCode) {
@@ -312,7 +323,6 @@ class WordToneIME : InputMethodService(), KeyboardView.OnKeyboardActionListener 
         suggestionsContainer?.removeAllViews()
         loadingText?.visibility = View.GONE
         emptyText?.visibility = View.GONE
-        // Keep cache — don't clear it
     }
 
     override fun onDestroy() {
