@@ -5,38 +5,40 @@
     android:orientation="vertical"
     android:gravity="center"
     android:padding="32dp"
-    android:background="@color/keyboard_bg">
+    android:background="#1C1C1E">
 
     <TextView
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="@string/keyboard_name"
-        android:textSize="24sp"
+        android:text="Word Tone Keyboard"
+        android:textSize="22sp"
         android:textStyle="bold"
-        android:textColor="@color/text_primary"
-        android:layout_marginBottom="8dp" />
+        android:textColor="#FFFFFF"
+        android:layout_marginBottom="12dp"/>
 
     <TextView
-        android:id="@+id/status_text"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
+        android:text="Follow 2 steps to activate"
         android:textSize="14sp"
-        android:textColor="@color/text_secondary"
-        android:gravity="center"
-        android:layout_marginBottom="32dp" />
+        android:textColor="#AEAEB2"
+        android:layout_marginBottom="32dp"/>
 
-    <com.google.android.material.button.MaterialButton
+    <Button
         android:id="@+id/btn_enable_keyboard"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:text="Step 1: Enable Keyboard"
-        android:layout_marginBottom="12dp" />
+        android:backgroundTint="#6C5CE7"
+        android:textColor="#FFFFFF"
+        android:layout_marginBottom="12dp"/>
 
-    <com.google.android.material.button.MaterialButton
+    <Button
         android:id="@+id/btn_select_keyboard"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="Step 2: Select as Active Keyboard"
-        style="@style/Widget.MaterialComponents.Button.OutlinedButton" />
+        android:text="Step 2: Select as Active"
+        android:backgroundTint="#3A3A3C"
+        android:textColor="#FFFFFF"/>
 
 </LinearLayout>
