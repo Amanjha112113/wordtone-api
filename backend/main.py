@@ -49,7 +49,7 @@ Expected output format:
 
     try:
         response = client.models.generate_content(
-            model="gemini-1.5-flash-latest",
+            model="gemini-flash-latest",
             contents=prompt,
             config=types.GenerateContentConfig(
                 temperature=0.9,
@@ -80,7 +80,7 @@ Expected output format:
 
 @app.get("/health")
 async def health():
-    return {"status": "ok", "model": "gemini-1.5-flash-latest"}
+    return {"status": "ok", "model": "gemini-flash-latest"}
 
 
 @app.get("/remaining/{ip}")
