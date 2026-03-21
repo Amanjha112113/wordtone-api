@@ -98,4 +98,7 @@ to update the api key :
 railway service
 railway variables set GEMINI_API_KEY=hgfkgfk
 railway up        
+
+
+https://railway.com/project/  main account amanjha112113
 '''
