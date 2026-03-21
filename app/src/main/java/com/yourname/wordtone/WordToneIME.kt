@@ -15,47 +15,52 @@ class WordToneIME : InputMethodService() {
     private var suggestionsContainer: LinearLayout? = null
     private var loadingText: TextView? = null
     private var emptyText: TextView? = null
-    private var toneContainer: LinearLayout? = null
     private var selectedTone = Constants.TONES[0]
 
     override fun onCreateInputView(): View {
-        val view = layoutInflater.inflate(R.layout.keyboard_panel, null)
-        rootView = view
-
-        suggestionsContainer = view.findViewById(R.id.suggestions_container)
-        loadingText = view.findViewById(R.id.loading_text)
-        emptyText = view.findViewById(R.id.empty_text)
-        toneContainer = view.findViewById(R.id.tone_container)
-
-        buildToneChips()
-
-        view.findViewById<Button>(R.id.btn_rewrite)?.setOnClickListener {
-            triggerRewrite()
+        return try {
+            val view = layoutInflater.inflate(R.layout.keyboard_panel, null)
+            rootView = view
+            suggestionsContainer = view.findViewById(R.id.suggestions_container)
+            loadingText = view.findViewById(R.id.loading_text)
+            emptyText = view.findViewById(R.id.empty_text)
+            buildToneChips(view)
+            view.findViewById<Button>(R.id.btn_rewrite)?.setOnClickListener {
+                triggerRewrite()
+            }
+            view.findViewById<Button>(R.id.btn_close)?.setOnClickListener {
+                requestHideSelf(0)
+            }
+            view
+        } catch (e: Exception) {
+            // Fallback: return empty view if inflation fails
+            TextView(this).apply { text = "Word Tone" }
         }
-
-        view.findViewById<ImageButton>(R.id.btn_close)?.setOnClickListener {
-            requestHideSelf(0)
-        }
-
-        return view
     }
 
-    private fun buildToneChips() {
-        toneContainer?.removeAllViews()
+    private fun buildToneChips(view: View) {
+        val container = view.findViewById<LinearLayout>(R.id.tone_container) ?: return
+        container.removeAllViews()
         Constants.TONES.forEach { tone ->
             val chip = TextView(this).apply {
                 text = tone.label
                 textSize = 12f
-                setPadding(24, 8, 24, 8)
                 isSelected = (tone.value == selectedTone.value)
+                setPadding(32, 16, 32, 16)
                 setBackgroundResource(R.drawable.bg_chip)
+                val lp = LinearLayout.LayoutParams(
+                    LinearLayout.LayoutParams.WRAP_CONTENT,
+                    LinearLayout.LayoutParams.WRAP_CONTENT
+                )
+                lp.marginEnd = 12
+                layoutParams = lp
                 setOnClickListener {
                     selectedTone = tone
-                    buildToneChips()
+                    buildToneChips(rootView ?: return@setOnClickListener)
                     triggerRewrite()
                 }
             }
-            toneContainer?.addView(chip)
+            container.addView(chip)
         }
     }
 
@@ -78,8 +83,8 @@ class WordToneIME : InputMethodService() {
 
     private fun fetchRewrites(text: String, tone: String) {
         loadingText?.visibility = View.VISIBLE
-        suggestionsContainer?.removeAllViews()
         emptyText?.visibility = View.GONE
+        suggestionsContainer?.removeAllViews()
 
         scope.launch {
             try {
@@ -92,28 +97,29 @@ class WordToneIME : InputMethodService() {
                 loadingText?.visibility = View.GONE
                 val msg = when (e.code()) {
                     429 -> "Daily limit reached."
-                    else -> "Server error ${e.code()}"
+                    else -> "Server error. Try again."
                 }
-                showEmpty(msg)
+                emptyText?.text = msg
+                emptyText?.visibility = View.VISIBLE
             } catch (e: IOException) {
                 loadingText?.visibility = View.GONE
-                showEmpty("No internet connection.")
+                emptyText?.text = "No internet connection."
+                emptyText?.visibility = View.VISIBLE
             } catch (e: Exception) {
                 loadingText?.visibility = View.GONE
-                showEmpty("Error: ${e.message}")
+                emptyText?.text = "Something went wrong."
+                emptyText?.visibility = View.VISIBLE
             }
         }
     }
 
     private fun showSuggestions(variations: List<String>) {
-        emptyText?.visibility = View.GONE
+        val container = suggestionsContainer ?: return
         variations.forEach { suggestion ->
-            val item = layoutInflater.inflate(
-                R.layout.suggestion_item, suggestionsContainer, false
-            )
-            item.findViewById<TextView>(R.id.suggestion_text).text = suggestion
+            val item = layoutInflater.inflate(R.layout.suggestion_item, container, false)
+            item.findViewById<TextView>(R.id.suggestion_text)?.text = suggestion
             item.setOnClickListener { injectText(suggestion) }
-            suggestionsContainer?.addView(item)
+            container.addView(item)
         }
     }
 
@@ -126,8 +132,14 @@ class WordToneIME : InputMethodService() {
             ic.endBatchEdit()
             requestHideSelf(0)
         } catch (e: Exception) {
-            Toast.makeText(this, "Could not insert text", Toast.LENGTH_SHORT).show()
+            Toast.makeText(this, "Could not insert text.", Toast.LENGTH_SHORT).show()
         }
+    }
+
+    override fun onFinishInputView(finishingInput: Boolean) {
+        super.onFinishInputView(finishingInput)
+        suggestionsContainer?.removeAllViews()
+        loadingText?.visibility = View.GONE
     }
 
     override fun onDestroy() {
