@@ -2,7 +2,6 @@ package com.yourname.wordtone
 
 import android.inputmethodservice.InputMethodService
 import android.view.View
-import android.view.inputmethod.EditorInfo
 import android.view.inputmethod.ExtractedTextRequest
 import android.widget.*
 import kotlinx.coroutines.*
@@ -12,142 +11,123 @@ import java.io.IOException
 class WordToneIME : InputMethodService() {
 
     private val scope = CoroutineScope(Dispatchers.Main + SupervisorJob())
-
-    private lateinit var rootView: View
-    private lateinit var toneScrollView: HorizontalScrollView
-    private lateinit var toneContainer: LinearLayout
-    private lateinit var suggestionsContainer: LinearLayout
-    private lateinit var loadingBar: ProgressBar
-    private lateinit var loadingText: TextView
-    private lateinit var emptyText: TextView
-
+    private var rootView: View? = null
+    private var suggestionsContainer: LinearLayout? = null
+    private var loadingText: TextView? = null
+    private var emptyText: TextView? = null
+    private var toneContainer: LinearLayout? = null
     private var selectedTone = Constants.TONES[0]
 
     override fun onCreateInputView(): View {
-        rootView = layoutInflater.inflate(R.layout.keyboard_panel, null)
+        val view = layoutInflater.inflate(R.layout.keyboard_panel, null)
+        rootView = view
 
-        toneScrollView = rootView.findViewById(R.id.tone_scroll)
-        toneContainer = rootView.findViewById(R.id.tone_container)
-        suggestionsContainer = rootView.findViewById(R.id.suggestions_container)
-        loadingBar = rootView.findViewById(R.id.loading_bar)
-        loadingText = rootView.findViewById(R.id.loading_text)
-        emptyText = rootView.findViewById(R.id.empty_text)
+        suggestionsContainer = view.findViewById(R.id.suggestions_container)
+        loadingText = view.findViewById(R.id.loading_text)
+        emptyText = view.findViewById(R.id.empty_text)
+        toneContainer = view.findViewById(R.id.tone_container)
 
         buildToneChips()
 
-        rootView.findViewById<Button>(R.id.btn_rewrite).setOnClickListener {
+        view.findViewById<Button>(R.id.btn_rewrite)?.setOnClickListener {
             triggerRewrite()
         }
 
-        rootView.findViewById<ImageButton>(R.id.btn_close).setOnClickListener {
+        view.findViewById<ImageButton>(R.id.btn_close)?.setOnClickListener {
             requestHideSelf(0)
         }
 
-        return rootView
+        return view
     }
 
     private fun buildToneChips() {
-        toneContainer.removeAllViews()
+        toneContainer?.removeAllViews()
         Constants.TONES.forEach { tone ->
-            val chip = layoutInflater.inflate(R.layout.tone_chip, toneContainer, false) as TextView
-            chip.text = tone.label
-            chip.isSelected = (tone.value == selectedTone.value)
-            chip.setOnClickListener {
-                selectedTone = tone
-                buildToneChips()   // re-render to update selected state
-                triggerRewrite()
+            val chip = TextView(this).apply {
+                text = tone.label
+                textSize = 12f
+                setPadding(24, 8, 24, 8)
+                isSelected = (tone.value == selectedTone.value)
+                setBackgroundResource(R.drawable.bg_chip)
+                setOnClickListener {
+                    selectedTone = tone
+                    buildToneChips()
+                    triggerRewrite()
+                }
             }
-            toneContainer.addView(chip)
+            toneContainer?.addView(chip)
         }
     }
 
     private fun getCurrentInputText(): String {
-        val ic = currentInputConnection ?: return ""
-        val req = ExtractedTextRequest().apply { hintMaxChars = 1000 }
-        return ic.getExtractedText(req, 0)?.text?.toString()?.trim() ?: ""
+        return try {
+            val ic = currentInputConnection ?: return ""
+            val req = ExtractedTextRequest().apply { hintMaxChars = 1000 }
+            ic.getExtractedText(req, 0)?.text?.toString()?.trim() ?: ""
+        } catch (e: Exception) { "" }
     }
 
     private fun triggerRewrite() {
         val text = getCurrentInputText()
         if (text.isBlank()) {
-            toast("Type a message first!")
-            return
-        }
-        if (text.length < 3) {
-            toast("Message too short to rewrite.")
+            Toast.makeText(this, "Type something first!", Toast.LENGTH_SHORT).show()
             return
         }
         fetchRewrites(text, selectedTone.value)
     }
 
     private fun fetchRewrites(text: String, tone: String) {
-        setLoading(true)
-        suggestionsContainer.removeAllViews()
+        loadingText?.visibility = View.VISIBLE
+        suggestionsContainer?.removeAllViews()
+        emptyText?.visibility = View.GONE
 
         scope.launch {
             try {
                 val response = RetrofitClient.apiService.rewrite(
-                    RewriteRequest(text = text.truncate(500), tone = tone)
+                    RewriteRequest(text = text, tone = tone)
                 )
-                setLoading(false)
-                if (response.variations.isEmpty()) {
-                    showEmpty("No suggestions returned. Try again.")
-                } else {
-                    showSuggestions(response.variations)
-                }
+                loadingText?.visibility = View.GONE
+                showSuggestions(response.variations)
             } catch (e: HttpException) {
-                setLoading(false)
-                when (e.code()) {
-                    429 -> showEmpty("Daily limit reached. Try again tomorrow.")
-                    500 -> showEmpty("Server error. Try again in a moment.")
-                    else -> showEmpty("Error ${e.code()}. Check your connection.")
+                loadingText?.visibility = View.GONE
+                val msg = when (e.code()) {
+                    429 -> "Daily limit reached."
+                    else -> "Server error ${e.code()}"
                 }
+                showEmpty(msg)
             } catch (e: IOException) {
-                setLoading(false)
+                loadingText?.visibility = View.GONE
                 showEmpty("No internet connection.")
             } catch (e: Exception) {
-                setLoading(false)
-                showEmpty("Something went wrong. Try again.")
+                loadingText?.visibility = View.GONE
+                showEmpty("Error: ${e.message}")
             }
         }
     }
 
     private fun showSuggestions(variations: List<String>) {
-        emptyText.visibility = View.GONE
+        emptyText?.visibility = View.GONE
         variations.forEach { suggestion ->
             val item = layoutInflater.inflate(
                 R.layout.suggestion_item, suggestionsContainer, false
             )
             item.findViewById<TextView>(R.id.suggestion_text).text = suggestion
             item.setOnClickListener { injectText(suggestion) }
-            suggestionsContainer.addView(item)
+            suggestionsContainer?.addView(item)
         }
     }
 
     private fun injectText(newText: String) {
-        val ic = currentInputConnection ?: return
-        ic.beginBatchEdit()
-        ic.performContextMenuAction(android.R.id.selectAll)
-        ic.commitText(newText, 1)
-        ic.endBatchEdit()
-        requestHideSelf(0)
-    }
-
-    private fun setLoading(isLoading: Boolean) {
-        loadingBar.visibility = if (isLoading) View.VISIBLE else View.GONE
-        loadingText.visibility = if (isLoading) View.VISIBLE else View.GONE
-        emptyText.visibility = View.GONE
-    }
-
-    private fun showEmpty(message: String) {
-        emptyText.text = message
-        emptyText.visibility = View.VISIBLE
-    }
-
-    override fun onFinishInputView(finishingInput: Boolean) {
-        super.onFinishInputView(finishingInput)
-        suggestionsContainer.removeAllViews()
-        setLoading(false)
+        try {
+            val ic = currentInputConnection ?: return
+            ic.beginBatchEdit()
+            ic.performContextMenuAction(android.R.id.selectAll)
+            ic.commitText(newText, 1)
+            ic.endBatchEdit()
+            requestHideSelf(0)
+        } catch (e: Exception) {
+            Toast.makeText(this, "Could not insert text", Toast.LENGTH_SHORT).show()
+        }
     }
 
     override fun onDestroy() {
