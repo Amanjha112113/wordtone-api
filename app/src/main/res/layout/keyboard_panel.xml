@@ -1,75 +1,85 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/keyboard_panel_root"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
     android:orientation="vertical"
-    android:background="#1C1C1E"
-    android:paddingTop="10dp"
+    android:background="@color/surface_container_low"
     android:paddingBottom="12dp">
 
+    <!-- Header -->
     <LinearLayout
         android:layout_width="match_parent"
-        android:layout_height="40dp"
+        android:layout_height="wrap_content"
         android:orientation="horizontal"
-        android:paddingStart="14dp"
-        android:paddingEnd="10dp"
-        android:gravity="center_vertical">
+        android:paddingStart="24dp"
+        android:paddingEnd="24dp"
+        android:paddingTop="16dp"
+        android:paddingBottom="16dp"
+        android:gravity="center_vertical"
+        android:background="#1C1C1E">
 
         <TextView
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_weight="1"
             android:text="Word Tone"
-            android:textColor="#FFFFFF"
-            android:textSize="15sp"
+            android:textColor="@color/white"
+            android:textSize="18sp"
             android:textStyle="bold"/>
 
         <Button
             android:id="@+id/btn_rewrite"
             android:layout_width="wrap_content"
-            android:layout_height="32dp"
-            android:text="ReWrite"
-            android:textSize="12sp"
-            android:textColor="#FFFFFF"
-            android:backgroundTint="#6C5CE7"
-            android:paddingStart="14dp"
-            android:paddingEnd="14dp"/>
-
-        <Button
-            android:id="@+id/btn_close"
-            android:layout_width="36dp"
             android:layout_height="36dp"
-            android:layout_marginStart="4dp"
-            android:text="X"
-            android:textColor="#AEAEB2"
-            android:textSize="12sp"
-            android:backgroundTint="#3A3A3C"/>
-
+            android:text="REWRITE"
+            android:textSize="14sp"
+            android:textStyle="bold"
+            android:textColor="@color/white"
+            android:background="@drawable/bg_rewrite_btn"
+            android:paddingStart="16dp"
+            android:paddingEnd="16dp"
+            android:minHeight="0dp"
+            android:minWidth="0dp"/>
     </LinearLayout>
 
-    <HorizontalScrollView
+    <!-- Tone Carousel Container -->
+    <FrameLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:scrollbars="none"
-        android:layout_marginTop="6dp"
-        android:paddingStart="10dp"
-        android:paddingEnd="10dp">
+        android:paddingStart="16dp"
+        android:paddingEnd="16dp"
+        android:paddingTop="16dp"
+        android:paddingBottom="16dp">
 
         <LinearLayout
-            android:id="@+id/tone_container"
-            android:layout_width="wrap_content"
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:orientation="horizontal"
-            android:gravity="center_vertical"/>
+            android:background="@drawable/bg_carousel"
+            android:padding="6dp">
 
-    </HorizontalScrollView>
+            <HorizontalScrollView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:scrollbars="none">
 
+                <LinearLayout
+                    android:id="@+id/tone_container"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:orientation="horizontal"
+                    android:gravity="center_vertical"/>
+
+            </HorizontalScrollView>
+        </LinearLayout>
+    </FrameLayout>
+
+    <!-- Suggestions and Loading Info -->
     <ProgressBar
         android:id="@+id/loading_bar"
         android:layout_width="wrap_content"
         android:layout_height="24dp"
         android:layout_gravity="center_horizontal"
-        android:layout_marginTop="8dp"
         android:visibility="gone"/>
 
     <TextView
@@ -77,8 +87,8 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_gravity="center_horizontal"
-        android:text="Rewriting with AI..."
-        android:textColor="#AEAEB2"
+        android:text="Generating all tones..."
+        android:textColor="@color/text_secondary"
         android:textSize="12sp"
         android:visibility="gone"/>
 
@@ -87,8 +97,7 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_gravity="center_horizontal"
-        android:layout_marginTop="10dp"
-        android:textColor="#AEAEB2"
+        android:textColor="#FF6B6B"
         android:textSize="12sp"
         android:visibility="gone"/>
 
@@ -97,8 +106,7 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:orientation="vertical"
-        android:layout_marginTop="8dp"
-        android:paddingStart="10dp"
-        android:paddingEnd="10dp"/>
+        android:paddingStart="16dp"
+        android:paddingEnd="16dp"/>
 
 </LinearLayout>

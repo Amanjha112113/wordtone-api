@@ -37,9 +37,32 @@ class WordToneIME : InputMethodService(), KeyboardView.OnKeyboardActionListener 
 
         val root = LinearLayout(this).apply {
             orientation = LinearLayout.VERTICAL
-            setBackgroundColor(0xFF1C1C1E.toInt())
+            setBackgroundColor(android.graphics.Color.parseColor("#131315"))
         }
-        root.addView(buildPanel())
+        
+        val panel = layoutInflater.inflate(R.layout.keyboard_panel, null) as LinearLayout
+        
+        val rewriteBtn = panel.findViewById<Button>(R.id.btn_rewrite)
+        rewriteBtn.setOnClickListener { fetchAllTones() }
+
+        chipRow = panel.findViewById(R.id.tone_container)
+        loadingText = panel.findViewById(R.id.loading_text)
+        emptyText = panel.findViewById(R.id.empty_text)
+        suggestionsContainer = panel.findViewById(R.id.suggestions_container)
+
+        Constants.TONES.forEach { tone ->
+            val chip = layoutInflater.inflate(R.layout.tone_chip, chipRow, false) as TextView
+            chip.text = tone.label
+            chip.setOnClickListener {
+                selectedTone = tone
+                updateChipColors()
+                showCachedTone(tone.value)
+            }
+            chipRow?.addView(chip)
+        }
+        updateChipColors()
+        
+        root.addView(panel)
 
         val kv = KeyboardView(this, null).apply {
             keyboard = qwertyKeyboard
@@ -54,122 +77,11 @@ class WordToneIME : InputMethodService(), KeyboardView.OnKeyboardActionListener 
         return root
     }
 
-    private fun buildPanel(): LinearLayout {
-        val panel = LinearLayout(this).apply {
-            orientation = LinearLayout.VERTICAL
-            setBackgroundColor(0xFF1C1C1E.toInt())
-            setPadding(0, 14, 0, 10)
-        }
-
-        // Header
-        val header = LinearLayout(this).apply {
-            orientation = LinearLayout.HORIZONTAL
-            setPadding(20, 0, 16, 0)
-            gravity = Gravity.CENTER_VERTICAL
-        }
-        val title = TextView(this).apply {
-            text = "Word Tone"
-            textSize = 14f
-            setTextColor(0xFFFFFFFF.toInt())
-            setTypeface(null, Typeface.BOLD)
-            layoutParams = LinearLayout.LayoutParams(
-                0, LinearLayout.LayoutParams.WRAP_CONTENT, 1f)
-        }
-        val rewriteBtn = Button(this).apply {
-            text = "ReWrite"
-            textSize = 11f
-            setTextColor(0xFFFFFFFF.toInt())
-            setBackgroundColor(0xFF6C5CE7.toInt())
-            layoutParams = LinearLayout.LayoutParams(
-                LinearLayout.LayoutParams.WRAP_CONTENT, 72)
-            setOnClickListener { fetchAllTones() }
-        }
-        header.addView(title)
-        header.addView(rewriteBtn)
-        panel.addView(header)
-
-        // Tone chips
-        val scroll = HorizontalScrollView(this).apply {
-            isHorizontalScrollBarEnabled = false
-            layoutParams = LinearLayout.LayoutParams(
-                LinearLayout.LayoutParams.MATCH_PARENT,
-                LinearLayout.LayoutParams.WRAP_CONTENT).also { it.topMargin = 8 }
-        }
-        val chips = LinearLayout(this).apply {
-            orientation = LinearLayout.HORIZONTAL
-            setPadding(16, 0, 16, 0)
-        }
-        chipRow = chips
-
-        Constants.TONES.forEach { tone ->
-            val chip = TextView(this).apply {
-                text = tone.label
-                textSize = 11f
-                setPadding(20, 10, 20, 10)
-                setBackgroundColor(
-                    if (tone.value == selectedTone.value) 0xFF6C5CE7.toInt()
-                    else 0xFF3A3A3C.toInt())
-                setTextColor(0xFFFFFFFF.toInt())
-                layoutParams = LinearLayout.LayoutParams(
-                    LinearLayout.LayoutParams.WRAP_CONTENT,
-                    LinearLayout.LayoutParams.WRAP_CONTENT).also { it.marginEnd = 8 }
-                setOnClickListener {
-                    selectedTone = tone
-                    updateChipColors()
-                    // ZERO API calls — just show cache
-                    showCachedTone(tone.value)
-                }
-            }
-            chips.addView(chip)
-        }
-        scroll.addView(chips)
-        panel.addView(scroll)
-
-        // Loading text
-        val loading = TextView(this).apply {
-            text = "Generating all tones..."
-            textSize = 11f
-            setTextColor(0xFFAEAEB2.toInt())
-            visibility = View.GONE
-            gravity = Gravity.CENTER
-            layoutParams = LinearLayout.LayoutParams(
-                LinearLayout.LayoutParams.MATCH_PARENT,
-                LinearLayout.LayoutParams.WRAP_CONTENT).also { it.topMargin = 6 }
-        }
-        loadingText = loading
-        panel.addView(loading)
-
-        // Error text
-        val empty = TextView(this).apply {
-            textSize = 11f
-            setTextColor(0xFFFF6B6B.toInt())
-            visibility = View.GONE
-            gravity = Gravity.CENTER
-            layoutParams = LinearLayout.LayoutParams(
-                LinearLayout.LayoutParams.MATCH_PARENT,
-                LinearLayout.LayoutParams.WRAP_CONTENT).also { it.topMargin = 6 }
-        }
-        emptyText = empty
-        panel.addView(empty)
-
-        // Suggestions container
-        val sugg = LinearLayout(this).apply {
-            orientation = LinearLayout.VERTICAL
-            setPadding(12, 6, 12, 0)
-        }
-        suggestionsContainer = sugg
-        panel.addView(sugg)
-
-        return panel
-    }
-
     private fun updateChipColors() {
         val row = chipRow ?: return
         for (i in 0 until row.childCount) {
             val chip = row.getChildAt(i) as? TextView ?: continue
-            chip.setBackgroundColor(
-                if (Constants.TONES[i].value == selectedTone.value) 0xFF6C5CE7.toInt()
-                else 0xFF3A3A3C.toInt())
+            chip.isSelected = (Constants.TONES[i].value == selectedTone.value)
         }
     }
 
@@ -242,21 +154,11 @@ class WordToneIME : InputMethodService(), KeyboardView.OnKeyboardActionListener 
         }
 
         variations.forEach { rewrite ->
-            val item = TextView(this).apply {
-                text = rewrite
-                textSize = 13f
-                setTextColor(0xFFFFFFFF.toInt())
-                setBackgroundColor(0xFF2C2C2E.toInt())
-                setPadding(20, 16, 20, 16)
-                layoutParams = LinearLayout.LayoutParams(
-                    LinearLayout.LayoutParams.MATCH_PARENT,
-                    LinearLayout.LayoutParams.WRAP_CONTENT).also {
-                    it.bottomMargin = 6
-                }
-                // Tap to inject into WhatsApp
-                setOnClickListener { injectText(rewrite) }
-            }
-            container.addView(item)
+            val suggestionView = layoutInflater.inflate(R.layout.suggestion_item, container, false) as LinearLayout
+            val textView = suggestionView.findViewById<TextView>(R.id.suggestion_text)
+            textView.text = rewrite
+            suggestionView.setOnClickListener { injectText(rewrite) }
+            container.addView(suggestionView)
         }
     }
 
