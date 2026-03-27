@@ -14,6 +14,14 @@ Word Tone is a high-performance, edge-integrated AI transcription and rewriting 
 
 Word Tone is designed as a distributed system, separating high-latency generative AI computation from the low-latency interactive keyboard interface.
 
+<p align="center">
+  <img src="images/1.jpeg" width="30%" />
+  <img src="images/2.jpeg" width="30%" /> 
+  <img src="images/3.jpeg" width="30%" />
+  <br>
+  <em>Word Tone in action: QWERTY Layout, AI Tone Selection, and Real-time Suggestions.</em>
+</p>
+
 ### 1. **Client Layer (Android IME)**
 *   **IMF Integration**: Inherits from `InputMethodService` to interact with the Android Input Method Framework, ensuring global accessibility across all input fields.
 *   **Dynamic UI Inflation**: Utilizes native binary XML inflation to minimize view creation latency and memory overhead during layout transitions.
