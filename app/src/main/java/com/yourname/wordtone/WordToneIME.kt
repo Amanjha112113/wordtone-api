@@ -29,11 +29,14 @@ class WordToneIME : InputMethodService(), KeyboardView.OnKeyboardActionListener 
     private var isSymbols = false
     private var qwertyKeyboard: Keyboard? = null
     private var symbolsKeyboard: Keyboard? = null
+    private var emojiKeyboard: Keyboard? = null
     private var keyboardView: KeyboardView? = null
+    private var currentMode = 0 // 0: QWERTY, 1: Symbols, 2: Emoji
 
     override fun onCreateInputView(): View {
         qwertyKeyboard = Keyboard(this, R.xml.qwerty)
         symbolsKeyboard = Keyboard(this, R.xml.symbols)
+        emojiKeyboard = Keyboard(this, R.xml.emoji)
 
         val root = LinearLayout(this).apply {
             orientation = LinearLayout.VERTICAL
@@ -196,8 +199,17 @@ class WordToneIME : InputMethodService(), KeyboardView.OnKeyboardActionListener 
                 keyboardView?.invalidateAllKeys()
             }
             Keyboard.KEYCODE_MODE_CHANGE -> {
-                isSymbols = !isSymbols
-                keyboardView?.keyboard = if (isSymbols) symbolsKeyboard else qwertyKeyboard
+                if (currentMode == 0) {
+                    currentMode = 1
+                    keyboardView?.keyboard = symbolsKeyboard
+                } else {
+                    currentMode = 0
+                    keyboardView?.keyboard = qwertyKeyboard
+                }
+            }
+            -10 -> {
+                currentMode = 2
+                keyboardView?.keyboard = emojiKeyboard
             }
             32 -> ic.commitText(" ", 1)
             else -> {

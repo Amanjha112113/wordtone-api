@@ -35,7 +35,7 @@ MODELS = [
     "gemini-2.5-flash-lite",
     "gemini-flash-lite-latest"
 ]
-TONES  = ["casual", "professional", "polite", "romantic", "gen-z", "witty", "formal", "friendly"]
+TONES  = ["casual", "professional", "polite", "grammar", "gen-z", "formal", "friendly"]
 
 class RewriteRequest(BaseModel):
     text: str
@@ -115,6 +115,8 @@ async def rewrite_all(req: RewriteRequest):
     tones_str = ", ".join(TONES)
     prompt = f"""Rewrite the following message in ALL of these tones: {tones_str}.
 
+For the 'grammar' tone, if the input is grammatically incorrect, provide exactly 3 variations of the corrected text. If the input is already correct, provide the original text as the variations.
+
 For each tone, give exactly 3 different variations.
 
 Return ONLY valid JSON (no markdown, no extra text):
@@ -122,9 +124,8 @@ Return ONLY valid JSON (no markdown, no extra text):
   "casual":       ["variation 1", "variation 2", "variation 3"],
   "professional": ["variation 1", "variation 2", "variation 3"],
   "polite":       ["variation 1", "variation 2", "variation 3"],
-  "romantic":     ["variation 1", "variation 2", "variation 3"],
+  "grammar":      ["variation 1", "variation 2", "variation 3"],
   "gen-z":        ["variation 1", "variation 2", "variation 3"],
-  "witty":        ["variation 1", "variation 2", "variation 3"],
   "formal":       ["variation 1", "variation 2", "variation 3"],
   "friendly":     ["variation 1", "variation 2", "variation 3"]
 }}

@@ -5,12 +5,11 @@ object Constants {
 
     val TONES = listOf(
         ToneItem("ReWrite", "casual"),
+        ToneItem("Grammar", "grammar"),
         ToneItem("Professional", "professional"),
         ToneItem("Casual", "casual"),
         ToneItem("Polite", "polite"),
-        ToneItem("Romantic", "romantic"),
         ToneItem("Gen-Z", "gen-z"),
-        ToneItem("Witty", "witty"),
         ToneItem("Formal", "formal")
     )
 }
