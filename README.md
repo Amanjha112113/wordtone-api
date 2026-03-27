@@ -82,7 +82,7 @@ Word Tone is built with a **Privacy-First** engineering philosophy:
     python -m uvicorn main:app --reload
     ```
 3.  **Build Android Client**:
-    Open the root directory in **Android Studio**, sync Gradle, and deploy the `app` module to your device.
+    Open the root directory in **Android Studio**, sync Gradle, and deploy the `app` module to your devices.
 
 ---
 
