@@ -1,98 +1,104 @@
 # Word Tone Keyboard ⌨️🤖
 
+![Android](https://img.shields.io/badge/Platform-Android-3DDC84?style=for-the-badge&logo=android&logoColor=white)
+![Kotlin](https://img.shields.io/badge/Language-Kotlin-%237F52FF.svg?style=for-the-badge&logo=kotlin&logoColor=white)
+![Python](https://img.shields.io/badge/Backend-Python-3776AB?style=for-the-badge&logo=python&logoColor=white)
+![FastAPI](https://img.shields.io/badge/Framework-FastAPI-009688?style=for-the-badge&logo=fastapi&logoColor=white)
+![AI](https://img.shields.io/badge/AI-Gemini_Flash-purple?style=for-the-badge&logo=google-gemini&logoColor=white)
+![Design](https://img.shields.io/badge/UI/UX-Google_Stitch-blue?style=for-the-badge)
+
 <p align="center">
   <img src="images/1.jpeg" width="30%" />
   <img src="images/2.jpeg" width="30%" /> 
   <img src="images/3.jpeg" width="30%" />
 </p>
 
-<p align="center">
-  <img src="https://img.shields.io/badge/Platform-Android-green?style=for-the-badge&logo=android" />
-  <img src="https://img.shields.io/badge/Language-Kotlin-orange?style=for-the-badge&logo=kotlin" />
-  <img src="https://img.shields.io/badge/Backend-FastAPI-blue?style=for-the-badge&logo=fastapi" />
-  <img src="https://img.shields.io/badge/AI-Gemini%20Flash-purple?style=for-the-badge&logo=google-gemini" />
-</p>
+---
+
+## 📝 Project Overview
+**Word Tone** is a premium, AI-powered custom keyboard for Android. It enables users to rewrite messages and correct grammar in real-time by leveraging Google's **Gemini AI**. With a modern **Google Stitch** inspired design, Word Tone provides a seamless and aesthetically pleasing writing experience across all Android apps.
 
 ---
 
-### 📝 Project Overview
-**Word Tone** is a next-generation AI-integrated keyboard for Android. It enables users to rewrite their messages in real-time by leveraging Google's **Gemini AI** model. Whether you're aiming for a *professional* email or a *witty* tweet, Word Tone transforms your input directly from the keyboard.
+## ✨ Key Features
+
+### 🚀 AI Tone Transformation
+Instantly rewrite any message into a variety of tones directly from your keyboard:
+- **Professional**: Perfect for work emails and formal communication.
+- **Casual**: For friendly, relaxed messaging.
+- **Polite**: Soften your requests and messages.
+- **Formal**: Traditional and structured language.
+- **Gen-Z**: For staying current with trends.
+- **Friendly**: Warm and approachable.
+
+### ✍️ Advanced Grammar Correction
+A dedicated **Grammar** mode that analyzes your input and provides 3 variations of perfectly corrected text. If your grammar is already perfect, it intelligently keeps your original message.
+
+### 🎨 Modern Google Stitch UI
+- **Dark Mode Design**: A sleek, material-inspired dark theme for eye comfort and aesthetic excellence.
+- **Dynamic Carousel**: Easily scroll through all available AI tones with a custom-designed header.
+- **Interactive Suggestions**: AI results appear as tappable, modern cards for instant insertion.
+- **Fluid Layouts**: Pure XML-inflated layouts for high performance and smooth transitions.
+
+### 😃 Emoji Support
+Built-in **Emoji Keyboard** with quick access to 40+ common emojis, ensuring you never miss a beat in expression.
 
 ---
 
-### 🧱 System Architecture
+## 🧱 System Architecture
 
 ```mermaid
 graph TD
-    A[Android Device] -->|1. Post Text| B[Railway Backend]
-    B -->|2. Generate Content| C[Google Gemini API]
-    C -->|3. JSON Variations| B
-    B -->|4. HTTP 200| A
-    A -->|5. Inject Choice| D[App Context]
+    A[Android Keyboard] -->|1. User Text + Tone| B[FastAPI Backend]
+    B -->|2. Generate Rewrites| C[Google Gemini AI]
+    C -->|3. JSON Result| B
+    B -->|4. Rewritten Variations| A
+    A -->|5. Insert into App| D[Any Text Field]
 ```
 
 ---
 
-### 🌟 Key Highlights
+## 🚀 Quick Setup Guide
 
-- **Standard QWERTY Layout**: Full keyboard with symbols and number rows.
-- **On-the-Fly Rewriting**: Select your text and click "ReWrite".
-- **Tone Presets**:
-  - `Casual` - For friends and family.
-  - `Professional` - For work and formal communication.
-  - `Academic` - For research and study.
-  - `Sarcastic` - For... you know.
-- **Privacy First**: Only the highlighted text is sent for processing.
-
----
-
-### 🚀 Quick Setup Guide
-
-#### **Backend (Railway / Local)**
-The backend is built with FastAPI and hosted on Railway.
+### 1. Backend (FastAPI)
+The backend manages AI requests and state. It is designed to be hosted on Railway or locally.
 1. Obtain a **Gemini API Key** from [Google AI Studio](https://aistudio.google.com/).
-2. Set the `GEMINI_API_KEY` environment variable.
-3. Deploy to Railway or run locally:
+2. Set the `GEMINI_API_KEY` in your environment.
+3. Run locally:
    ```bash
    cd backend
    pip install -r requirements.txt
-   uvicorn main:app --host 0.0.0.0 --port 8080
+   uvicorn main:app --host 0.0.0.0 --port 8000
    ```
 
-#### **Android Application**
+### 2. Android Application
 1. Open the project in **Android Studio**.
-2. Build the project using Gradle.
-3. Enable the "Word Tone" Keyboard in your device settings.
-4. Set it as your default IME.
+2. Update the `BASE_URL` in `Constants.kt` to point to your backend.
+3. Build and deploy to your emulator or device.
+4. Enable **Word Tone Keyboard** in Settings → System → Languages & Input.
 
 ---
 
-### 📂 Project Structure
+## 📂 Project Structure
 
 ```text
 .
-├── app/                  # Android Application (Kotlin)
-│   ├── build.gradle      # Build configuration for Android
-│   └── src/              # Main source code (IME Service)
-├── backend/              # AI Service (FastAPI)
-│   ├── main.py           # API logic & Gemini integration
-│   ├── Dockerfile        # Container configuration
-│   └── requirements.txt  # Python dependencies
-├── images/               # App screenshots
-│   ├── 1.jpeg            # Keyboard in action
-│   ├── 2.jpeg            # AI Rewrite panel
-│   └── 3.jpeg            # Suggestion list
-├── .github/              # CI/CD Workflows
-├── gradlew               # Gradle wrapper executable
-└── README.md             # Project documentation
+├── app/                  # Android (Kotlin/XML)
+│   ├── src/main/java/    # Keyboard & API logic
+│   ├── src/main/res/     # Google Stitch Layouts & Drawables
+│   └── src/main/xml/     # QWERTY, Symbols & Emoji layouts
+├── backend/              # AI Service (Python FastAPI)
+│   ├── main.py           # Gemini integration & Tone logic
+│   └── requirements.txt  # Dependencies (google-genai, fastapi)
+└── README.md             # Documentation
 ```
 
 ---
 
-### 🎯 Roadmap
-- [ ] Voice-to-Text with AI refinement.
-- [ ] Auto-Correct powered by LLM context.
-- [ ] Multi-language translation on-the-fly.
+## 🎯 Roadmap
+- [ ] **Smart Auto-Correct**: LLM-context aware error correction.
+- [ ] **Multi-Language Translation**: Translate text on-the-fly.
+- [ ] **Voice-to-AI**: Voice input that automatically refines into formal/casual text.
 
 ---
 
