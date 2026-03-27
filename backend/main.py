@@ -30,10 +30,10 @@ print(f"Loaded {len(KEYS)} API key(s)")
 
 # Use the explicitly verified models that work without quotas
 MODELS = [
-    "gemini-3.1-flash-lite-preview",
-    "gemini-2.5-flash",
-    "gemini-2.5-flash-lite",
-    "gemini-flash-lite-latest"
+    "gemini-1.5-flash",
+    "gemini-1.5-flash-8b",
+    "gemini-2.0-flash-exp",
+    "gemini-1.5-pro"
 ]
 TONES  = ["casual", "professional", "polite", "grammar", "gen-z", "formal", "friendly"]
 
@@ -55,8 +55,11 @@ def mark_exhausted(key: str):
     for e in KEYS:
         if e["key"] == key:
             e["exhausted_at"] = time.time()
-            if key:
-                print(f"Key ...{key[-6:]} marked exhausted for 24h")
+            if key and isinstance(key, str):
+                key_len = len(key)
+                # Avoid slice shorthand for lint compatibility
+                snippet = key if key_len < 6 else key[key_len-6:key_len]
+                print(f"Key ...{snippet} marked exhausted for 24h")
 
 def extract_json(text: str) -> dict:
     try:
@@ -71,19 +74,29 @@ def extract_json(text: str) -> dict:
         try:
             return json.loads(match.group())
         except: pass
-    raise ValueError(f"Cannot parse: {text[:300]}")
+    # Avoid slice shorthand for lint compatibility
+    text_len = len(text)
+    snippet = text if text_len < 300 else text[0:300]
+    raise ValueError(f"Cannot parse: {snippet}")
 
 async def call_gemini(prompt: str) -> str:
-    tried = set()
+    tried_keys = set()
     while True:
-        entry = get_active_client()
+        entry = None
+        now = time.time()
+        for e in KEYS:
+            if e["key"] in tried_keys:
+                continue
+            if e["exhausted_at"] and (now - e["exhausted_at"]) < 86400:
+                continue
+            entry = e
+            break
+            
         if not entry:
-            raise HTTPException(status_code=429, detail="All API quotas exhausted for the next 24 hours. Try again later.")
+            raise HTTPException(status_code=429, detail="All API keys exhausted or failed for this request. Try again later.")
 
         key = entry["key"]
-        if key in tried:
-            raise HTTPException(status_code=429, detail="All API quotas exhausted for the next 24 hours. Try again later.")
-        tried.add(key)
+        tried_keys.add(key)
 
         client = genai.Client(api_key=key)
 
@@ -115,9 +128,7 @@ async def rewrite_all(req: RewriteRequest):
     tones_str = ", ".join(TONES)
     prompt = f"""Rewrite the following message in ALL of these tones: {tones_str}.
 
-For the 'grammar' tone, if the input is grammatically incorrect, provide exactly 3 variations of the corrected text. If the input is already correct, provide the original text as the variations.
-
-For each tone, give exactly 3 different variations.
+For the 'grammar' tone, provide a version with corrected grammar. If the input is already grammatically correct, provide the original text. For each tone (including grammar), give exactly 3 variations.
 
 Return ONLY valid JSON (no markdown, no extra text):
 {{
@@ -132,13 +143,28 @@ Return ONLY valid JSON (no markdown, no extra text):
 
 Original message: "{req.text}"
 """
-    raw = await call_gemini(prompt)
-    data = extract_json(raw)
+    try:
+        raw = await call_gemini(prompt)
+        data = extract_json(raw)
+    except Exception as e:
+        print(f"Error in rewrite_all: {str(e)}")
+        traceback.print_exc()
+        raise HTTPException(status_code=500, detail=f"Failed to process AI response: {str(e)}")
 
     result = {}
     for tone in TONES:
-        val = data.get(tone, [req.text])
-        result[tone] = (list(val)[:3] if isinstance(val, list) else [str(val)])
+        val = data.get(tone)
+        if isinstance(val, list):
+            # Take up to 3 elements using a loop for maximum lint safety
+            final_list = []
+            for item in val:
+                if len(final_list) < 3:
+                    final_list.append(item)
+            result[tone] = final_list
+        elif val:
+            result[tone] = [str(val)]
+        else:
+            result[tone] = [req.text]
 
     return {"rewrites": result}
 

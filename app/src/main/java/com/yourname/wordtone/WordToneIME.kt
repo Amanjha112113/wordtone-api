@@ -237,6 +237,8 @@ class WordToneIME : InputMethodService(), KeyboardView.OnKeyboardActionListener 
         suggestionsContainer?.removeAllViews()
         loadingText?.visibility = View.GONE
         emptyText?.visibility = View.GONE
+        currentMode = 0
+        keyboardView?.keyboard = qwertyKeyboard
     }
 
     override fun onDestroy() {
