@@ -69,21 +69,6 @@ Word Tone is built with a **Privacy-First** engineering philosophy:
 *   **Backend Development**: Python 3.10+, Virtualenv.
 *   **API Access**: A valid Gemini API Key from [Google AI Studio](https://aistudio.google.com/).
 
-### Installation Steps
-1.  **Clone the Repository**:
-    ```bash
-    git clone https://github.com/Amanjha112113/wordtone-api.git
-    cd wordtone-api
-    ```
-2.  **Initialize Backend**:
-    ```bash
-    cd backend
-    pip install -r requirements.txt
-    python -m uvicorn main:app --reload
-    ```
-3.  **Build Android Client**:
-    Open the root directory in **Android Studio**, sync Gradle, and deploy the `app` module to your devices.
-
 ---
 
 Developed and maintained by **amanjha112113**. 🚀
