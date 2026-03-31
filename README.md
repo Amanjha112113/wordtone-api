@@ -71,4 +71,4 @@ Word Tone is built with a **Privacy-First** engineering philosophy:
 
 ---
 
-Developed and maintained by **amanjha112113**. 🚀
+Developed and maintained by **amanjha112113**. 
