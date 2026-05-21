@@ -1,0 +1,17 @@
+package com.yourname.wordtone
+
+object Constants {
+    const val BASE_URL = "https://wordtone-api-production.up.railway.app/"  // ← add /
+
+    val TONES = listOf(
+        ToneItem("ReWrite", "casual"),
+        ToneItem("Grammar", "grammar"),
+        ToneItem("Professional", "professional"),
+        ToneItem("Casual", "casual"),
+        ToneItem("Polite", "polite"),
+        ToneItem("Gen-Z", "gen-z"),
+        ToneItem("Formal", "formal")
+    )
+}
+
+data class ToneItem(val label: String, val value: String)
